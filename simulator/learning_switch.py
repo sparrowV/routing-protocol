@@ -10,6 +10,8 @@ import sim.api as api
 import sim.basics as basics
 
 
+counter = 0
+
 class LearningSwitch (api.Entity):
   """
   A learning switch
@@ -27,7 +29,11 @@ class LearningSwitch (api.Entity):
 
     You probablty want to do something in this method.
     """
-    pass
+
+    global counter
+    self.num = counter
+    counter+=1
+    self.table = {}
 
   def handle_port_down (self, port):
     """
@@ -35,9 +41,11 @@ class LearningSwitch (api.Entity):
 
     You probably want to remove table entries which are no longer valid here.
     """
-    pass
+   # print("down")
+    self.table = {key: val for key, val in self.table.items() if val != port}
 
   def handle_rx (self, packet, in_port):
+   # print("table here\n",self.table)
     """
     Called when a packet is received
 
@@ -52,8 +60,21 @@ class LearningSwitch (api.Entity):
     # simple hub.
 
     if isinstance(packet, basics.HostDiscoveryPacket):
+      self.table[packet.src] = in_port
       # Don't forward discovery messages
       return
 
-    # Flood out all ports except the input port
-    self.send(packet, in_port, flood=True)
+
+   # print(packet.src, packet.dst, in_port)
+   # print("table",self.table)
+    if(packet.dst not in self.table.keys()):
+
+    #    print("flood")
+         # Flood out all ports except the input port
+        self.send(packet, in_port, flood=True)
+
+    else:
+     #   print("came here")
+        self.send(packet, self.table[packet.dst], flood=False)
+
+    self.table[packet.src] = in_port

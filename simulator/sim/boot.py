@@ -104,7 +104,7 @@ def main ():
       if "." in k:
         variables[k.rsplit(".")[-1]] = v
       variables[k.replace('.', '_')] = v
-    import readline
+    #import readline
     interp = code.InteractiveConsole(locals=variables)
     interp.interact("")
   else:

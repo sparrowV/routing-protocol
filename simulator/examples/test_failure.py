@@ -52,6 +52,7 @@ def launch ():
 
     yield 10
 
+
     api.userlog.debug("Failing s1-s2 link")
     s1.unlinkTo(s2)
 
