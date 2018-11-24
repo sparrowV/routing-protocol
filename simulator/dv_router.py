@@ -12,7 +12,6 @@ import time
 INFINITY = 16
 
 
-
 class DVRouter (basics.DVRouterBase):
   #NO_LOG = True # Set to True on an instance to disable its logging
   POISON_MODE = True # Can override POISON_MODE here
@@ -76,13 +75,13 @@ class DVRouter (basics.DVRouterBase):
     """
     #self.log("RX %s on %s (%s)", packet, port, api.current_time())
 
-    #print("in hangle_rx , router# = ",self.counter)
-    #print("table before",self.table)
+   # print("in hangle_rx , router# = ",self.counter)
+  #  print("table before",self.table)
     if isinstance(packet, basics.RoutePacket):
 
         if(packet.destination not in self.table.keys()):
            # if(self.counter <=1):
-            #nt("packet dest not in table",packet.destination)
+             #print("packet dest not in table",packet.destination)
 
             self.table[packet.destination] = (port, self.ports_info[port] + packet.latency, time.time(),True)
             self.send_updated_route_to_neighbours(packet.destination, self.ports_info[port] + packet.latency, port)
@@ -102,6 +101,7 @@ class DVRouter (basics.DVRouterBase):
 
     elif isinstance(packet, basics.HostDiscoveryPacket):
         self.table[packet.src] = (port,self.ports_info[port],time.time(),False)
+        self.send_updated_route_to_neighbours(packet.src, self.ports_info[port], port)
 
 
     else:
@@ -109,13 +109,13 @@ class DVRouter (basics.DVRouterBase):
       # the packet back to where it came from!
       #self.send(packet, port=
       if(packet.dst in self.table.keys() and self.table[packet.dst][1] <INFINITY):
-       #   print("yeah!!\n",packet.dst)
+         # print("yeah!!\n",packet.dst)
 
           self.send(packet,port = self.table[packet.dst][0])
 
 
 
-        #  print("talbe after", self.table)
+         # print("talbe after", self.table)
 
   def send_updated_route_to_neighbours(self,destination,latency,input_port):
       #should i send update to neighbour from where it came from?
@@ -132,17 +132,17 @@ class DVRouter (basics.DVRouterBase):
     When called, your router should send tables to neighbors.  It also might
     not be a bad place to check for whether any entries have expired.
     """
-    #if(self.counter <=1):
-     #   print("in handle_timer router",self.counter)
-      #  print("table ",self.table)
+   # if(self.counter <=1):
+       # print("in handle_timer router",self.counter)
+       # print("table ",self.table)
     nodes_to_delete_for_timeout = []
     for dest in self.table.keys():
         for port in self.ports_info.keys():
             time_now = time.time()
             dest_info = self.table[dest]
-            if( (time_now - dest_info[2]) > 15):
+            if( (time_now - dest_info[2]) > 15 and dest_info[3] == True):
 
-                if(dest not in nodes_to_delete_for_timeout and dest_info[3] == True):
+                if(dest not in nodes_to_delete_for_timeout):
                  nodes_to_delete_for_timeout.append(dest)
             else:
                 r_packet = basics.RoutePacket(dest,dest_info[1])
@@ -150,6 +150,6 @@ class DVRouter (basics.DVRouterBase):
 
     #not delete nodes for timeout
     for node in nodes_to_delete_for_timeout:
-      #  print("expired", node)
+       # print("expired", node)
 
         del self.table[node]
